@@ -135,6 +135,5 @@ try:
     predicted_price = model.predict(user_features)
     print(f"\n💻 Estimated Laptop Price: €{predicted_price[0]:.2f}")
 
-except Exception as e:
-    print("\n⚠️ Error! Please check your input carefully.")
-    print(f"Details: {e}")
+except Exception:
+    print("\n⚠️ Error! Please check your input carefully and enter valid system specifications.")
