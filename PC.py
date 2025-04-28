@@ -133,7 +133,7 @@ try:
     user_features = [[ram_input, ssd_input, hdd_input, company_encoded, product_encoded, screenres_encoded]]
 
     predicted_price = model.predict(user_features)
-    print(f"\n💻 Predicted Laptop Price: €{predicted_price[0]:.2f}")
+    print(f"\n💻 Estimated Laptop Price: €{predicted_price[0]:.2f}")
 
 except Exception as e:
     print("\n⚠️ Error! Please check your input carefully.")
