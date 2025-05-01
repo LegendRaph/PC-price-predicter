@@ -4,12 +4,12 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
 from rapidfuzz import process 
 
-
 df = pd.read_csv('laptop_price.csv', encoding='latin-1')
 
 
 df['Ram'] = df['Ram'].str.replace('GB', '').str.strip()
 df['Ram'] = pd.to_numeric(df['Ram'], errors='coerce')
+
 
 def extract_memory_types(mem_str):
     mem_str = str(mem_str).lower()
@@ -57,6 +57,8 @@ res = ['IPS Panel Retina Display 2560x1600', '1440x900',
        'IPS Panel Touchscreen 2400x1600']
 
 
+
+
 company_encoder = OrdinalEncoder(categories=[comp], dtype=int)
 screenres_encoder = OrdinalEncoder(categories=[res], dtype=int)
 product_encoder = LabelEncoder()
@@ -65,7 +67,7 @@ product_encoder = LabelEncoder()
 df['Company_enc'] = company_encoder.fit_transform(df[['Company']])
 df['ScreenRes_enc'] = screenres_encoder.fit_transform(df[['ScreenResolution']])
 df['Prod_enc'] = product_encoder.fit_transform(df['Product'])
-
+df['Price_in_euros'] = df['Price_in_euros'] * 1600
 
 X = df[['Ram', 'SSD', 'HDD', 'Company_enc', 'Prod_enc', 'ScreenRes_enc']]
 y = df['Price_in_euros']
@@ -93,47 +95,49 @@ user_input = input("Enter Laptop Specifications: ")
 try:
     parts = [x.strip() for x in user_input.split(',')]
 
- 
+    
     ram_str = parts[0]
     ram_input = int(ram_str.lower().replace('gb ram', '').strip())
 
-
+   
     ssd_input = 0
     hdd_input = 0
 
     if 'ssd' in parts[1].lower():
         ssd_str = parts[1]
-        ssd_input = int(ssd_str.lower().replace('gb ssd', '').replace('tb ssd', '000').strip())
-      
+        ssd_input = int(ssd_str.lower().replace('gb ssd', ''))
+        
         company_input, product_input, screenres_input = parts[2], parts[3], parts[4]
     elif 'hdd' in parts[1].lower():
         hdd_str = parts[1]
         hdd_input = int(hdd_str.lower().replace('gb hdd', '').replace('tb hdd', '000').strip())
-       
+        
         company_input, product_input, screenres_input = parts[2], parts[3], parts[4]
     else:
         raise ValueError("Second input must specify SSD or HDD.")
 
-  
+    
     company_corrected = fuzzy_correct(company_input, comp, field_name='Company')
     screenres_corrected = fuzzy_correct(screenres_input, res, field_name='ScreenResolution')
 
-
+    
     company_encoded = company_encoder.transform([[company_corrected]])[0][0]
     screenres_encoded = screenres_encoder.transform([[screenres_corrected]])[0][0]
 
-  
+    
     product_list = list(product_encoder.classes_)
     product_corrected = fuzzy_correct(product_input, product_list, field_name='Product', cutoff=60)
 
-
+  
     product_encoded = product_encoder.transform([product_corrected])[0]
 
-    
+   
     user_features = [[ram_input, ssd_input, hdd_input, company_encoded, product_encoded, screenres_encoded]]
 
+    df['Price_in_euros'] = df['Price_in_euros'] * 1600
     predicted_price = model.predict(user_features)
-    print(f"\n💻 Estimated Laptop Price: €{predicted_price[0]:.2f}")
+    print(f"\n💻 Predicted Laptop Price: N{predicted_price[0]:.2f}")
 
 except Exception:
     print("\n⚠️ Error! Please check your input carefully and enter valid system specifications.")
+   
